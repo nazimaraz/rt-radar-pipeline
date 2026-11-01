@@ -1,0 +1,31 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "qemu",
+      "displayName": "MPS2-AN386 (Cortex-M4F) on QEMU",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/qemu",
+      "toolchainFile": "${sourceDir}/cmake/arm-none-eabi.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "qemu",
+      "configurePreset": "qemu"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "qemu",
+      "configurePreset": "qemu",
+      "output": {
+        "outputOnFailure": true,
+        "verbosity": "verbose"
+      }
+    }
+  ]
+}

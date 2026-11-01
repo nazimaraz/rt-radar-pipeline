@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="QEMU" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="-machine mps2-an386 -cpu cortex-m4 -nographic -semihosting-config enable=on,target=native -kernel $ProjectFileDir$/build/qemu/firmware.elf" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="true" PASS_PARENT_ENVS_2="true" PROJECT_NAME="rt_radar_pipeline" TARGET_NAME="firmware" CONFIG_NAME="qemu - qemu" RUN_PATH="/opt/homebrew/bin/qemu-system-arm">
+    <method v="2">
+      <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+    </method>
+  </configuration>
+</component>
