@@ -12,8 +12,9 @@ namespace {
 enum Priority : UBaseType_t {
   kLoggerPriority = 1, // lowest of ours: logging must never delay real work
   kHeartbeatPriority = 2,
-  kConsumerPriority = 3,
-  kSamplerPriority = 4, // 16 ms period: the shortest, so the highest
+  kReporterPriority = 3,
+  kProcessingPriority = 4,
+  kSamplerPriority = 5, // 16 ms period, tied with processing: the first stage
 };
 
 constexpr auto kHeartbeatPeriod{osal::Milliseconds{1'000}};
@@ -50,7 +51,7 @@ int main() {
                tskKERNEL_VERSION_NUMBER, " | Cortex-M4F @ ",
                configCPU_CLOCK_HZ / 1000000u, " MHz\n");
 
-  pipeline::start(kSamplerPriority, kConsumerPriority);
+  pipeline::start(kSamplerPriority, kProcessingPriority, kReporterPriority);
   heartbeatTask.start("heartbeat", kHeartbeatPriority, heartbeat);
 
   vTaskStartScheduler(); // does not return while the system runs

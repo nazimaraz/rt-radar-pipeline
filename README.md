@@ -19,7 +19,7 @@ rt-radar-pipeline 0.1.0 | FreeRTOS V11.3.3 | Cortex-M4F @ 25 MHz
 - [x] Boot smoke test on QEMU (`ctest`)
 - [x] Logger task fed by a queue (single UART owner, drops instead of blocking)
 - [x] Signal generator (noise + two sweeping tones) with a zero-copy buffer pool
-- [ ] FFT + CA-CFAR detection, unit tested on the host
+- [x] FFT + CA-CFAR detection, unit tested on the host (`cmake --preset host`)
 - [ ] Alpha-beta tracker
 - [ ] Timing and health monitoring (execution time, CPU load)
 - [ ] Priority inversion demo: binary semaphore vs. mutex with priority inheritance
@@ -57,7 +57,9 @@ Priorities follow rate-monotonic order: the shorter the period, the higher the p
 ## Layout
 
 ```
-app/                  application tasks (main.cpp, logger)
+app/                  application tasks (main.cpp, logger, sampler, signal processing)
+dsp/dsp/              FFT, Hann window, power spectrum, CA-CFAR: plain C++, no OS
+dsp/tests/            GoogleTest unit tests, built for the host
 bsp/include/bsp/      board API: init, shutdown, console, format
 bsp/mps2_an386/       startup.c, linker.ld, UART driver, FreeRTOSConfig.h
 osal/freertos/osal/   OSAL backend: one header per class, a .cpp unless it is a template
@@ -90,6 +92,10 @@ cmake --preset qemu
 cmake --build --preset qemu
 cmake --build --preset qemu --target run   # quit with Ctrl-A, then X
 ctest --preset qemu                        # boot smoke test
+
+cmake --preset host                        # native build of the DSP unit tests
+cmake --build --preset host
+ctest --preset host
 ```
 
 In CLion, pick the **QEMU** run configuration (stored in `.run/`) and press Run. It

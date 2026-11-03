@@ -53,7 +53,7 @@ Checks: >
 
 # Only our code, not FreeRTOS or the toolchain headers.
 # FreeRTOSConfig.h stays out: its macros must remain macros.
-HeaderFilterRegex: '(app|bsp/include|osal)/'
+HeaderFilterRegex: '(app|bsp/include|osal|dsp/dsp)/'
 WarningsAsErrors: ''
 
 CheckOptions:
