@@ -60,7 +60,7 @@ Priorities follow rate-monotonic order: the shorter the period, the higher the p
 app/                  application tasks (main.cpp, logger)
 bsp/include/bsp/      board API: init, shutdown, console, format
 bsp/mps2_an386/       startup.c, linker.ld, UART driver, FreeRTOSConfig.h
-osal/freertos/        OSAL backend: one header per class, a .cpp unless it is a template
+osal/freertos/osal/   OSAL backend: one header per class, a .cpp unless it is a template
 cmake/                arm-none-eabi toolchain file
 external/             FreeRTOS-Kernel (git submodule, V11.3.3)
 ```
