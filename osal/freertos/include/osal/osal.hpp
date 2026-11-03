@@ -36,12 +36,10 @@ inline void sleepFor(const Milliseconds ms) { vTaskDelay(toTicks(ms)); }
 // at the top of each cycle.
 class Periodic {
 public:
-  // clang-format off: the empty body goes on its own line
   explicit Periodic(const Milliseconds period)
     : period_{toTicks(period)}
     , lastWake_{xTaskGetTickCount()}
   {}
-  // clang-format on
 
   // Blocks until the next period starts. Returns false when that start was
   // already in the past, i.e. the previous cycle overran its deadline.
@@ -192,6 +190,17 @@ public:
 
 private:
   Mutex& mutex_;
+};
+
+// Interrupts below configMAX_SYSCALL_INTERRUPT_PRIORITY are masked for the
+// lifetime of the object, so a group of reads sees one consistent state. Keep
+// it to a few instructions.
+class CriticalSection {
+public:
+  CriticalSection() { taskENTER_CRITICAL(); }
+  ~CriticalSection() { taskEXIT_CRITICAL(); }
+  CriticalSection(const CriticalSection&) = delete;
+  CriticalSection& operator=(const CriticalSection&) = delete;
 };
 
 } // namespace osal

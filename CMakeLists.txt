@@ -52,7 +52,11 @@ target_link_libraries(osal PUBLIC freertos_kernel PRIVATE bsp project_warnings)
 
 # --- Firmware -----------------------------------------------------------------
 function(add_firmware name)
-    add_executable(${name} app/main.cpp app/logger.cpp)
+    add_executable(${name}
+        app/main.cpp
+        app/logger.cpp
+        app/pipeline.cpp
+        app/signal_generator.cpp)
     set_target_properties(${name} PROPERTIES SUFFIX .elf)
     target_compile_definitions(${name} PRIVATE PROJECT_VERSION="${PROJECT_VERSION}")
     target_link_libraries(${name} PRIVATE bsp osal project_warnings)
@@ -94,5 +98,5 @@ if(QEMU_ARM)
         COMMAND ${QEMU_ARM} ${QEMU_ARGS} -kernel $<TARGET_FILE:firmware_smoke>)
     set_tests_properties(boot_smoke PROPERTIES
         TIMEOUT 10
-        FAIL_REGULAR_EXPRESSION "\\*\\*\\*|OVERRUN")
+        FAIL_REGULAR_EXPRESSION "\\*\\*\\*|OVERRUN|lost [1-9]|ovr [1-9]|LEAK")
 endif()

@@ -18,7 +18,7 @@ rt-radar-pipeline 0.1.0 | FreeRTOS V11.3.3 | Cortex-M4F @ 25 MHz
 - [x] Periodic task with deadline-overrun detection and stack headroom report
 - [x] Boot smoke test on QEMU (`ctest`)
 - [x] Logger task fed by a queue (single UART owner, drops instead of blocking)
-- [ ] Signal generator with a zero-copy buffer pool
+- [x] Signal generator (noise + two sweeping tones) with a zero-copy buffer pool
 - [ ] FFT + CA-CFAR detection, unit tested on the host
 - [ ] Alpha-beta tracker
 - [ ] Timing and health monitoring (execution time, CPU load)

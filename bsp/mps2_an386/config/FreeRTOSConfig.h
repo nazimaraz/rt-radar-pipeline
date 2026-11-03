@@ -57,7 +57,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-void vAssertCalled( const char * file, int line );
+void vAssertCalled( const char * file, int line ) __attribute__( ( noreturn ) );
 #ifdef __cplusplus
 }
 #endif
