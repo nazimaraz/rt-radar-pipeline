@@ -17,7 +17,7 @@ rt-radar-pipeline 0.1.0 | FreeRTOS V11.3.3 | Cortex-M4F @ 25 MHz
 - [x] FreeRTOS 11.3.3, static allocation only, behind a thin OSAL
 - [x] Periodic task with deadline-overrun detection and stack headroom report
 - [x] Boot smoke test on QEMU (`ctest`)
-- [ ] Logger task fed by a queue
+- [x] Logger task fed by a queue (single UART owner, drops instead of blocking)
 - [ ] Signal generator with a zero-copy buffer pool
 - [ ] FFT + CA-CFAR detection, unit tested on the host
 - [ ] Alpha-beta tracker
@@ -57,13 +57,27 @@ Priorities follow rate-monotonic order: the shorter the period, the higher the p
 ## Layout
 
 ```
-app/                  application tasks (main.cpp)
-bsp/include/bsp/      board API: init, shutdown, console
+app/                  application tasks (main.cpp, logger)
+bsp/include/bsp/      board API: init, shutdown, console, format
 bsp/mps2_an386/       startup.c, linker.ld, UART driver, FreeRTOSConfig.h
 osal/freertos/        OSAL backend: Task, Queue, Mutex, BinarySemaphore, Periodic
 cmake/                arm-none-eabi toolchain file
 external/             FreeRTOS-Kernel (git submodule, V11.3.3)
 ```
+
+## Code style
+
+The style follows `app/logger.*`: `auto x{T{}}` brace initialisation, `const` on
+every parameter and local that is not reassigned (in definitions, not in
+declarations), `[[nodiscard]]` on results that must be checked, trailing
+underscore on private members, `kName` constants.
+
+```bash
+clang-format -i $(git ls-files '*.cpp' '*.hpp' '*.c')   # .clang-format
+tools/clang-tidy.sh                                       # .clang-tidy, needs a configured build
+```
+
+`bsp/mps2_an386/config/` keeps FreeRTOS's own layout and is not reformatted.
 
 ## Build and run
 

@@ -1,0 +1,11 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+IndentWidth: 2
+ColumnLimit: 80
+PointerAlignment: Left
+DerivePointerAlignment: false
+BreakConstructorInitializers: BeforeComma
+ConstructorInitializerIndentWidth: 2
+ReflowComments: false
+...

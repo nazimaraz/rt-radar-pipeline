@@ -9,4 +9,4 @@ void init();
 // On real hardware this is where a reset or a safe state would go.
 [[noreturn]] void shutdown(int exitCode);
 
-}  // namespace bsp
+} // namespace bsp

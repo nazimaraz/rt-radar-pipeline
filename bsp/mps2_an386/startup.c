@@ -12,39 +12,38 @@ extern init_fn_t __preinit_array_start[], __preinit_array_end[];
 extern init_fn_t __init_array_start[], __init_array_end[];
 
 extern int main(void);
-extern void bsp_fault(const char *what) __attribute__((noreturn));
+extern void bsp_fault(const char* what) __attribute__((noreturn));
 
 /* FreeRTOS port handlers go straight into the vector table ("direct routing"). */
 extern void vPortSVCHandler(void);
 extern void xPortPendSVHandler(void);
 extern void xPortSysTickHandler(void);
 
-#define SCB_CPACR (*(volatile uint32_t *)0xE000ED88u)
+#define SCB_CPACR (*(volatile uint32_t*)0xE000ED88u)
 
-void Reset_Handler(void)
-{
-    /* Enable the FPU (full access to CP10 and CP11) before any float instruction. */
-    SCB_CPACR |= (0xFu << 20);
-    __asm volatile("dsb\n\tisb" ::: "memory");
+void Reset_Handler(void) {
+  /* Enable the FPU (full access to CP10 and CP11) before any float instruction. */
+  SCB_CPACR |= (0xFu << 20);
+  __asm volatile("dsb\n\tisb" ::: "memory");
 
-    const uint32_t *src = &__etext;
-    for (uint32_t *dst = &__data_start__; dst < &__data_end__;) {
-        *dst++ = *src++;
-    }
-    for (uint32_t *dst = &__bss_start__; dst < &__bss_end__;) {
-        *dst++ = 0u;
-    }
+  const uint32_t* src = &__etext;
+  for (uint32_t* dst = &__data_start__; dst < &__data_end__;) {
+    *dst++ = *src++;
+  }
+  for (uint32_t* dst = &__bss_start__; dst < &__bss_end__;) {
+    *dst++ = 0u;
+  }
 
-    /* C++ static constructors */
-    for (init_fn_t *fn = __preinit_array_start; fn < __preinit_array_end; ++fn) {
-        (*fn)();
-    }
-    for (init_fn_t *fn = __init_array_start; fn < __init_array_end; ++fn) {
-        (*fn)();
-    }
+  /* C++ static constructors */
+  for (init_fn_t* fn = __preinit_array_start; fn < __preinit_array_end; ++fn) {
+    (*fn)();
+  }
+  for (init_fn_t* fn = __init_array_start; fn < __init_array_end; ++fn) {
+    (*fn)();
+  }
 
-    (void)main();
-    bsp_fault("main() returned");
+  (void)main();
+  bsp_fault("main() returned");
 }
 
 static void NMI_Handler(void) { bsp_fault("NMI"); }
@@ -64,6 +63,7 @@ typedef void (*vector_t)(void);
 
 #define IRQ(n) (16 + (n))
 
+/* clang-format off */
 __attribute__((section(".isr_vector"), used))
 const vector_t vector_table[IRQ(32)] = {
     [0] = (vector_t)&__StackTop,
@@ -82,3 +82,4 @@ const vector_t vector_table[IRQ(32)] = {
     [IRQ(9)] = TIMER1_IRQHandler,
     [IRQ(10) ... IRQ(31)] = Default_Handler,
 };
+/* clang-format on */

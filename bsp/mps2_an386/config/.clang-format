@@ -1,0 +1,4 @@
+---
+# FreeRTOS configuration keeps the vendor layout (aligned values, spaced parens).
+DisableFormat: true
+...
