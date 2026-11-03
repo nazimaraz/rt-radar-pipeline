@@ -46,15 +46,23 @@ target_include_directories(bsp PUBLIC bsp/include)
 target_link_libraries(bsp PRIVATE project_warnings)
 
 # --- OS abstraction layer (FreeRTOS backend) ---------------------------------
-add_library(osal OBJECT osal/freertos/osal_freertos.cpp)
+add_library(osal OBJECT
+    osal/freertos/binary_semaphore.cpp
+    osal/freertos/critical_section.cpp
+    osal/freertos/lock_guard.cpp
+    osal/freertos/mutex.cpp
+    osal/freertos/osal_freertos.cpp
+    osal/freertos/periodic.cpp)
 target_include_directories(osal PUBLIC osal/freertos/include)
 target_link_libraries(osal PUBLIC freertos_kernel PRIVATE bsp project_warnings)
 
 # --- Firmware -----------------------------------------------------------------
 function(add_firmware name)
     add_executable(${name}
-        app/main.cpp
+        app/block_pool.cpp
+        app/counter.cpp
         app/logger.cpp
+        app/main.cpp
         app/pipeline.cpp
         app/signal_generator.cpp)
     set_target_properties(${name} PROPERTIES SUFFIX .elf)

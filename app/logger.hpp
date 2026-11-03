@@ -38,7 +38,8 @@ bool enqueue(const LogMessage& message);
 
 } // namespace detail
 
-template <typename... Args> void post(const Args&... args) {
+template <typename... Args>
+void post(const Args&... args) {
   auto message{LogMessage{}};
   auto sink{detail::BufferSink{message.text, sizeof(message.text)}};
   bsp::format::print(sink, args...);

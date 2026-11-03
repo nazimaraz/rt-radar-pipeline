@@ -60,6 +60,8 @@ void putChar(const char c) {
   uart0().data = static_cast<std::uint8_t>(c);
 }
 
+void Sink::put(const char c) { putChar(c); }
+
 void write(const char* text) {
   while (*text != '\0') {
     putChar(*text++);

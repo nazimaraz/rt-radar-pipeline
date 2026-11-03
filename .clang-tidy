@@ -17,6 +17,9 @@
 #   readability-trailing-comma           fights clang-format's compact braces
 #   performance-no-int-to-ptr            memory-mapped registers
 #   performance-enum-size                priorities are UBaseType_t on purpose
+#   performance-trivially-destructible   defaulted special members of non-template
+#                                        classes live in the .cpp, like every
+#                                        other definition
 #   readability-inconsistent-declaration-parameter-name
 #                                        FreeRTOS hooks: it fixes the types, not
 #                                        the parameter names
@@ -45,6 +48,7 @@ Checks: >
   -readability-trailing-comma,
   -performance-no-int-to-ptr,
   -performance-enum-size,
+  -performance-trivially-destructible,
   -readability-inconsistent-declaration-parameter-name
 
 # Only our code, not FreeRTOS or the toolchain headers.

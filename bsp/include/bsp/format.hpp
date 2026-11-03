@@ -10,7 +10,8 @@
 // message buffer both use this code, so there is one formatter, not two.
 namespace bsp::format {
 
-template <typename Sink> void write(Sink& sink, const char* text) {
+template <typename Sink>
+void write(Sink& sink, const char* text) {
   while (*text != '\0') {
     sink.put(*text++);
   }
@@ -43,7 +44,8 @@ void writeSigned(Sink& sink, const std::int32_t value) {
 }
 
 // Fixed 3 decimals, no dtoa and no heap.
-template <typename Sink> void writeFloat(Sink& sink, float value) {
+template <typename Sink>
+void writeFloat(Sink& sink, float value) {
   if (value != value) {
     write(sink, "nan");
     return;
@@ -78,7 +80,8 @@ template <typename Sink> void writeFloat(Sink& sink, float value) {
   writeUnsigned(sink, fraction);
 }
 
-template <typename Sink, typename T> void printOne(Sink& sink, const T& value) {
+template <typename Sink, typename T>
+void printOne(Sink& sink, const T& value) {
   if constexpr (std::is_same_v<T, bool>) {
     write(sink, value ? "true" : "false");
   } else if constexpr (std::is_same_v<T, char>) {

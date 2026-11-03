@@ -5,8 +5,6 @@
 
 namespace {
 
-// With configSUPPORT_DYNAMIC_ALLOCATION == 0 the kernel cannot take the idle
-// task's memory from a heap, so the application provides it.
 auto idleTcb{StaticTask_t{}};
 StackType_t idleStack[configMINIMAL_STACK_SIZE]{};
 

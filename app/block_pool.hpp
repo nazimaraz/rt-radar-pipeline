@@ -25,44 +25,21 @@ public:
     std::size_t full;
   };
 
-  void create() {
-    free_.create();
-    full_.create();
-    for (auto i{std::size_t{0}}; i < kBlockCount; ++i) {
-      const auto sent{free_.send(static_cast<Index>(i))};
-      configASSERT(sent);
-    }
-  }
+  void create();
 
   // Sampler side: never waits. False means the consumer holds every block.
-  [[nodiscard]] bool acquire(Index& index) { return free_.receive(index, 0); }
-
-  void publish(const Index index) {
-    const auto sent{full_.send(index)};
-    configASSERT(sent);
-  }
+  [[nodiscard]] bool acquire(Index& index);
+  void publish(Index index);
 
   // Consumer side.
-  [[nodiscard]] bool take(Index& index, const osal::Milliseconds timeout) {
-    return full_.receive(index, timeout);
-  }
+  [[nodiscard]] bool take(Index& index, osal::Milliseconds timeout);
+  void release(Index index);
 
-  void release(const Index index) {
-    const auto sent{free_.send(index)};
-    configASSERT(sent);
-  }
-
-  [[nodiscard]] SampleBlock& block(const Index index) {
-    configASSERT(index < kBlockCount);
-    return blocks_[index];
-  }
+  [[nodiscard]] SampleBlock& block(Index index);
 
   // Blocks waiting in each queue, read at one instant. Every other block is
   // held by a task, so free + full + held must equal kBlockCount.
-  [[nodiscard]] Snapshot snapshot() const {
-    const osal::CriticalSection guard;
-    return {free_.size(), full_.size()};
-  }
+  [[nodiscard]] Snapshot snapshot() const;
 
 private:
   osal::Queue<Index, kBlockCount> free_;

@@ -15,10 +15,11 @@ void write(const char* text);
 
 // Character sink that sends everything straight to the UART.
 struct Sink {
-  static void put(const char c) { putChar(c); }
+  static void put(char c);
 };
 
-template <typename... Args> void print(const Args&... args) {
+template <typename... Args>
+void print(const Args&... args) {
   auto sink{Sink{}};
   format::print(sink, args...);
 }
