@@ -2,6 +2,13 @@
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR arm)
 
+# The host's CXXFLAGS/LDFLAGS are meant for the host compiler (for example a
+# clang-only --gcc-toolchain=...). arm-none-eabi-gcc rejects them, so keep them out.
+unset(ENV{CFLAGS})
+unset(ENV{CXXFLAGS})
+unset(ENV{ASMFLAGS})
+unset(ENV{LDFLAGS})
+
 # Look in PATH first, then in the usual install locations.
 set(_arm_hints "")
 if(DEFINED ENV{ARM_GNU_TOOLCHAIN})
