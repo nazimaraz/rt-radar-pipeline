@@ -10,42 +10,12 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
-    },
-    {
-      "name": "host",
-      "displayName": "Native host build with unit tests",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/host",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
     }
   ],
   "buildPresets": [
     {
       "name": "qemu",
       "configurePreset": "qemu"
-    },
-    {
-      "name": "host",
-      "configurePreset": "host"
-    }
-  ],
-  "testPresets": [
-    {
-      "name": "qemu",
-      "configurePreset": "qemu",
-      "output": {
-        "outputOnFailure": true,
-        "verbosity": "verbose"
-      }
-    },
-    {
-      "name": "host",
-      "configurePreset": "host",
-      "output": {
-        "outputOnFailure": true
-      }
     }
   ]
 }

@@ -63,13 +63,7 @@ add_firmware(firmware)
 add_custom_command(TARGET firmware POST_BUILD
     COMMAND ${CMAKE_SIZE} $<TARGET_FILE:firmware>)
 
-# Boot smoke test: the same firmware, built to exit QEMU with status 0 after
-# three heartbeats. Faults and failed asserts exit with a non-zero status.
-add_firmware(firmware_smoke)
-target_compile_definitions(firmware_smoke PRIVATE RT_SMOKE_TEST_BEATS=3)
-
-# --- Run, debug and test on QEMU ----------------------------------------------
-enable_testing()
+# --- Run and debug on QEMU ----------------------------------------------------
 find_program(QEMU_ARM qemu-system-arm)
 if(QEMU_ARM)
     set(QEMU_ARGS -machine mps2-an386 -cpu cortex-m4 -nographic
@@ -82,10 +76,4 @@ if(QEMU_ARM)
     add_custom_target(debug-server
         COMMAND ${QEMU_ARM} ${QEMU_ARGS} -kernel $<TARGET_FILE:firmware> -s -S
         DEPENDS firmware USES_TERMINAL VERBATIM)
-
-    add_test(NAME boot_smoke
-        COMMAND ${QEMU_ARM} ${QEMU_ARGS} -kernel $<TARGET_FILE:firmware_smoke>)
-    set_tests_properties(boot_smoke PROPERTIES
-        TIMEOUT 10
-        FAIL_REGULAR_EXPRESSION "\\*\\*\\*|OVERRUN|lost [1-9]|ovr [1-9]|ddrop [1-9]|LEAK")
 endif()

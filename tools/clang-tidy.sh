@@ -26,7 +26,7 @@ for dir in $includes; do
 done
 
 if [ $# -eq 0 ]; then
-  set -- $(cd "$root" && find app bsp osal dsp -name '*.cpp' -not -path 'dsp/tests/*')
+  set -- $(cd "$root" && find app bsp osal dsp -name '*.cpp')
 fi
 cd "$root"
 # shellcheck disable=SC2086

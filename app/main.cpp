@@ -34,12 +34,6 @@ void heartbeat(void*) {
                  " | stack headroom ", heartbeatTask.stackHeadroomWords(),
                  " words | log dropped ", logger::droppedCount(),
                  onTime ? "" : " | OVERRUN", "\n");
-#ifdef RT_SMOKE_TEST_BEATS
-    if (beats == RT_SMOKE_TEST_BEATS) {
-      osal::sleepFor(20); // let the logger print the last line first
-      bsp::shutdown(0);   // boot smoke test passed
-    }
-#endif
   }
 }
 

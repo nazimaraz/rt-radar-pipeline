@@ -19,8 +19,7 @@ Every 16 ms the sampler fills a block with 256 samples from a simulated ADC (16 
 noise and two sweeping tones) as 16-bit big-endian words, the byte order of VITA 49.
 The processing task converts them to float, applies a Hann window, a radix-2 FFT and
 CA-CFAR detection (Pfa = 10⁻⁶), and the reporter prints the targets found. Lost blocks,
-deadline overruns, dropped results and buffer leaks are counted, and the QEMU smoke
-test fails if any of them is non-zero.
+deadline overruns, dropped results and buffer leaks are counted and reported.
 
 ```
  ┌──────────┐  block ids  ┌───────────────────┐  detections  ┌──────────┐  text   ┌────────┐
@@ -48,14 +47,13 @@ test fails if any of them is non-zero.
   to VxWorks or an ARINC 653 partition OS means a new backend, not a new pipeline.
 - **Single-precision FPU.** `-Wdouble-promotion` catches double math the M4F would run
   in software.
-- **Tested.** 20 GoogleTest cases cover the DSP and the ADC format on the host, and
-  `ctest` boots the firmware in QEMU. The firmware needs about 18 KB of flash at `-Os`
-  (28 KB in the Debug preset) and 22 KB of RAM.
+- **Small footprint.** The firmware needs about 18 KB of flash at `-Os` (28 KB in
+  the Debug preset) and 22 KB of RAM.
 
 ## Build and run
 
 Requirements: CMake 3.25+, Ninja, Arm GNU Toolchain (`arm-none-eabi`), QEMU with the
-`mps2-an386` machine, and a host C++ compiler for the unit tests.
+`mps2-an386` machine.
 
 ```bash
 git clone --recursive https://github.com/nazimaraz/rt-radar-pipeline.git
@@ -63,10 +61,6 @@ cd rt-radar-pipeline
 
 cmake --preset qemu && cmake --build --preset qemu
 cmake --build --preset qemu --target run   # quit with Ctrl-A, then X
-ctest --preset qemu                        # boot smoke test
-
-cmake --preset host && cmake --build --preset host
-ctest --preset host                        # DSP unit tests
 ```
 
 To debug, start `cmake --build --preset qemu --target debug-server` and attach with
@@ -76,7 +70,7 @@ To debug, start `cmake --build --preset qemu --target debug-server` and attach w
 
 ```
 app/     sampler, processing, reporter, logger and heartbeat tasks
-dsp/     ADC format, FFT, Hann window, power spectrum, CA-CFAR (no OS) and unit tests
+dsp/     ADC format, FFT, Hann window, power spectrum and CA-CFAR: plain C++, no OS
 osal/    OS abstraction layer with a FreeRTOS backend
 bsp/     startup code, linker script, UART driver and FreeRTOS config for MPS2-AN386
 cmake/   toolchain file and build scripts
