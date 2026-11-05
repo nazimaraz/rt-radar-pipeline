@@ -62,8 +62,8 @@ void Fft::forward(Complex* const data) const {
         const auto bottom{data[start + k + half]};
         const auto tr{(bottom.re * wr) - (bottom.im * wi)};
         const auto ti{(bottom.re * wi) + (bottom.im * wr)};
-        data[start + k] = Complex{top.re + tr, top.im + ti};
-        data[start + k + half] = Complex{top.re - tr, top.im - ti};
+        data[start + k] = Complex{.re = top.re + tr, .im = top.im + ti};
+        data[start + k + half] = Complex{.re = top.re - tr, .im = top.im - ti};
       }
     }
   }

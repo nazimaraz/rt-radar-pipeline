@@ -19,7 +19,7 @@ HannWindow::HannWindow() {
 
 void HannWindow::apply(const float* const samples, Complex* const out) const {
   for (auto n{std::size_t{0}}; n < kFftSize; ++n) {
-    out[n] = Complex{samples[n] * coefficients_[n], 0.0f};
+    out[n] = Complex{.re = samples[n] * coefficients_[n], .im = 0.0f};
   }
 }
 

@@ -1,7 +1,7 @@
 # rt-radar-pipeline
 
 A hard real-time radar signal-processing pipeline on FreeRTOS, running bare metal on an
-ARM Cortex-M4F (QEMU, MPS2-AN386). Written in C++17 under the constraints of
+ARM Cortex-M4F (QEMU, MPS2-AN386). Written in C++23 under the constraints of
 safety-critical embedded software: no heap, static allocation, rate-monotonic
 priorities, measured deadlines and an OS abstraction layer.
 

@@ -34,7 +34,7 @@ SampleBlock& BlockPool::block(const Index index) {
 
 BlockPool::Snapshot BlockPool::snapshot() const {
   const osal::CriticalSection guard;
-  return {free_.size(), full_.size()};
+  return {.free = free_.size(), .full = full_.size()};
 }
 
 } // namespace pipeline
