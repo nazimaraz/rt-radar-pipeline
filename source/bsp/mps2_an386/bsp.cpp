@@ -6,7 +6,7 @@
 
 namespace {
 
-// CMSDK APB UART (ARM DDI 0479). QEMU connects UART0 to stdio with -nographic.
+// CMSDK APB UART (ARM DDI 0479)
 struct CmsdkUart {
   volatile std::uint32_t data;      // 0x00
   volatile std::uint32_t state;     // 0x04: bit 0 = TX buffer full
@@ -29,8 +29,9 @@ constexpr auto kTxEnable{std::uint32_t{1u << 0u}};
 namespace bsp {
 
 void init() {
-  uart0().bauddiv = 16; // smallest legal divider; QEMU ignores baud timing
-  uart0().ctrl = kTxEnable;
+  auto& uart{uart0()};
+  uart.bauddiv = 16; // smallest legal divider
+  uart.ctrl = kTxEnable;
 }
 
 void shutdown(const int exitCode) {
@@ -53,11 +54,14 @@ namespace bsp::console {
 
 void putChar(const char c) {
   if (c == '\n') {
-    putChar('\r'); // QEMU puts the terminal in raw mode
+    putChar('\r');
   }
-  while ((uart0().state & kTxFull) != 0u) {
+
+  auto& uart{uart0()};
+  while ((uart.state & kTxFull) != 0u) {
   }
-  uart0().data = static_cast<std::uint8_t>(c);
+
+  uart.data = static_cast<std::uint8_t>(c);
 }
 
 void Sink::put(const char c) { putChar(c); }
@@ -70,7 +74,6 @@ void write(const char* text) {
 
 } // namespace bsp::console
 
-// Called by the fault vectors in startup.c.
 // NOLINTNEXTLINE(readability-identifier-naming): C symbol called by startup.c
 extern "C" [[noreturn]] void bsp_fault(const char* const what) {
   bsp::console::print("\n*** FAULT: ", what, " ***\n");

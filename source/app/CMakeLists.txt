@@ -1,8 +1,7 @@
-# The firmware image: the pipeline tasks on top of the board, OS and DSP
-# libraries. It lands in the top of the build tree: build/qemu/firmware.elf.
 add_executable(firmware
     block_pool.cpp
     counter.cpp
+    heartbeat.cpp
     logger.cpp
     main.cpp
     pipeline.cpp
@@ -16,8 +15,6 @@ target_link_options(firmware PRIVATE
     -T${BSP_LINKER_SCRIPT}
     -Wl,-Map=$<TARGET_FILE_DIR:firmware>/firmware.map
     -Wl,--print-memory-usage
-    # No heap: any use of malloc/free (including new, std::vector, ...)
-    # becomes an undefined reference and fails the link.
     -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc -Wl,--wrap=free)
 set_property(TARGET firmware APPEND PROPERTY LINK_DEPENDS ${BSP_LINKER_SCRIPT})
 

@@ -1,6 +1,3 @@
-# FreeRTOS kernel, built from the submodule's sources with the Cortex-M4F port.
-# FreeRTOSConfig.h comes from the board: freertos_config is defined in
-# source/bsp.
 set(FREERTOS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS-Kernel)
 
 if(NOT EXISTS ${FREERTOS_DIR}/tasks.c)

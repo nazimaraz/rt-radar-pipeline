@@ -11,6 +11,6 @@ if(NOT CMAKE_CROSSCOMPILING)
     message(FATAL_ERROR "Only the firmware build exists: cmake --preset qemu")
 endif()
 
-add_subdirectory(dependencies) # FreeRTOS kernel
-add_subdirectory(source)       # our libraries and the firmware
-include(cmake/qemu.cmake)      # run and debug targets
+add_subdirectory(dependencies)
+add_subdirectory(source)
+include(cmake/qemu.cmake)
