@@ -1,5 +1,7 @@
 #include "signal_generator.hpp"
 
+#include "dsp/adc.hpp"
+
 namespace sim {
 namespace {
 
@@ -39,16 +41,17 @@ float SignalGenerator::nextNoise() {
          kInt32ToUnit;
 }
 
-void SignalGenerator::fill(float* const samples, const std::size_t count,
+void SignalGenerator::fill(std::uint16_t* const raw, const std::size_t count,
                            const std::uint32_t blockIndex) {
   const auto sweep{static_cast<float>(blockIndex % kSweepBlocks)};
   constexpr auto kRate{static_cast<float>(kSampleRateHz)};
   const auto stepA{(kTargetABaseHz + (kTargetAStepHz * sweep)) / kRate};
   const auto stepB{(kTargetBBaseHz + (kTargetBStepHz * sweep)) / kRate};
   for (auto i{std::size_t{0}}; i < count; ++i) {
-    samples[i] = (kAmplitudeA * sineTurns(phaseA_)) +
-                 (kAmplitudeB * sineTurns(phaseB_)) +
-                 (kNoiseAmplitude * nextNoise());
+    const auto sample{(kAmplitudeA * sineTurns(phaseA_)) +
+                      (kAmplitudeB * sineTurns(phaseB_)) +
+                      (kNoiseAmplitude * nextNoise())};
+    raw[i] = dsp::encodeSample(sample);
     phaseA_ = advance(phaseA_, stepA);
     phaseB_ = advance(phaseB_, stepB);
   }

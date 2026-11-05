@@ -7,17 +7,18 @@ priorities, measured deadlines and an OS abstraction layer.
 
 ```
 rt-radar-pipeline 0.1.0 | FreeRTOS V11.3.3 | Cortex-M4F @ 25 MHz
-[17 ms] block #0 dsp 0/0 ms | free 3 full 0 | lost 0 ovr 0 ddrop 0
-[18 ms] #0 bin 24 (1500 Hz) power 4075.825 thr 27.495
-[18 ms] #0 bin 80 (5000 Hz) power 991.403 thr 33.315
+[18 ms] block #0 dsp 1/1 ms | free 3 full 0 | lost 0 ovr 0 ddrop 0
+[18 ms] #0 bin 24 (1500 Hz) power 4075.535 thr 27.491
+[18 ms] #0 bin 80 (5000 Hz) power 991.375 thr 33.315
 [1000 ms] heartbeat #1 | stack headroom 211 words | log dropped 0
 ```
 
 ## How it works
 
-Every 16 ms the sampler fills a 256-sample block (16 kHz, simulated noise and two
-sweeping tones). The processing task applies a Hann window, a radix-2 FFT and CA-CFAR
-detection (Pfa = 10⁻⁶), and the reporter prints the targets found. Lost blocks,
+Every 16 ms the sampler fills a block with 256 samples from a simulated ADC (16 kHz,
+noise and two sweeping tones) as 16-bit big-endian words, the byte order of VITA 49.
+The processing task converts them to float, applies a Hann window, a radix-2 FFT and
+CA-CFAR detection (Pfa = 10⁻⁶), and the reporter prints the targets found. Lost blocks,
 deadline overruns, dropped results and buffer leaks are counted, and the QEMU smoke
 test fails if any of them is non-zero.
 
@@ -37,14 +38,19 @@ test fails if any of them is non-zero.
 - **No hidden runtime.** `-fno-exceptions -fno-rtti -fno-threadsafe-statics`,
   `-nostartfiles` and no syscall stubs. The only startup code is a hand-written
   `Reset_Handler`.
+- **C++23 without a runtime.** `std::expected` for pool calls that can fail,
+  `std::byteswap` for the ADC words, `std::to_underlying` for scoped priorities and
+  `std::unreachable` after an exhaustive `switch`. All header-only: no heap, no
+  exceptions, and no extra code at `-Os`.
 - **Rate-monotonic priorities.** The shorter the period, the higher the priority. The
   logger runs lowest, owns the UART and drops messages instead of blocking real work.
 - **OS abstraction layer.** Application code includes only `osal/osal.hpp`, so porting
   to VxWorks or an ARINC 653 partition OS means a new backend, not a new pipeline.
 - **Single-precision FPU.** `-Wdouble-promotion` catches double math the M4F would run
   in software.
-- **Tested.** 16 GoogleTest cases cover the DSP on the host, and `ctest` boots the
-  firmware in QEMU. The firmware takes about 27 KB of flash and 23 KB of RAM.
+- **Tested.** 20 GoogleTest cases cover the DSP and the ADC format on the host, and
+  `ctest` boots the firmware in QEMU. The firmware needs about 18 KB of flash at `-Os`
+  (28 KB in the Debug preset) and 22 KB of RAM.
 
 ## Build and run
 
@@ -70,7 +76,7 @@ To debug, start `cmake --build --preset qemu --target debug-server` and attach w
 
 ```
 app/     sampler, processing, reporter, logger and heartbeat tasks
-dsp/     FFT, Hann window, power spectrum, CA-CFAR (no OS) and their unit tests
+dsp/     ADC format, FFT, Hann window, power spectrum, CA-CFAR (no OS) and unit tests
 osal/    OS abstraction layer with a FreeRTOS backend
 bsp/     startup code, linker script, UART driver and FreeRTOS config for MPS2-AN386
 cmake/   toolchain file and build scripts

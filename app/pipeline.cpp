@@ -6,6 +6,7 @@
 
 #include "block_pool.hpp"
 #include "counter.hpp"
+#include "dsp/adc.hpp"
 #include "dsp/cfar.hpp"
 #include "dsp/fft.hpp"
 #include "dsp/spectrum.hpp"
@@ -43,6 +44,7 @@ const auto kWindow{dsp::HannWindow{}};
 const auto kFft{dsp::Fft{}};
 const auto kCfar{dsp::CaCfar{kFalseAlarmProbability}};
 
+float decoded[kBlockSamples];
 dsp::Complex spectrum[dsp::kFftSize];
 float power[dsp::kSpectrumBins];
 
@@ -55,12 +57,11 @@ void sampler(void*) {
       samplerOverruns.increment();
     }
 
-    auto index{BlockPool::Index{0}};
-    if (pool.acquire(index)) {
-      auto& block{pool.block(index)};
+    if (const auto acquired{pool.acquire()}) {
+      auto& block{pool.block(*acquired)};
       block.sequence = sequence;
       generator.fill(block.samples, kBlockSamples, sequence);
-      pool.publish(index);
+      pool.publish(*acquired);
     } else {
       lostBlocks.increment();
     }
@@ -81,18 +82,22 @@ void reportProcessing(const std::uint32_t sequence,
 void processing(void*) {
   auto slowest{osal::Milliseconds{0}};
   for (;;) {
-    auto index{BlockPool::Index{0}};
-    if (!pool.take(index, osal::kForever)) {
+    const auto taken{pool.take(osal::kForever)};
+    if (!taken) {
+      logger::post("[", osal::nowMs(),
+                   " ms] block pool: ", describe(taken.error()), "\n");
       continue;
     }
 
+    const auto index{*taken};
     const auto started{osal::nowMs()};
     auto list{dsp::DetectionList{}};
     list.sequence = pool.block(index).sequence;
-    kWindow.apply(pool.block(index).samples, spectrum);
+    dsp::decodeSamples(pool.block(index).samples, decoded, kBlockSamples);
     const auto pooled{pool.snapshot()};
     const auto leaked{pooled.free + pooled.full + 1u != kBlockCount};
     pool.release(index);
+    kWindow.apply(decoded, spectrum);
     kFft.forward(spectrum);
     dsp::powerSpectrum(spectrum, power);
     list.count = kCfar.detect(power, list.items, dsp::kMaxDetections);

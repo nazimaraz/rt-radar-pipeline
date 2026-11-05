@@ -15,6 +15,7 @@ FetchContent_MakeAvailable(googletest)
 # The signal generator is simulation code in app/, but it has no OS dependency.
 add_executable(dsp_tests
     app/signal_generator.cpp
+    dsp/tests/adc_test.cpp
     dsp/tests/cfar_test.cpp
     dsp/tests/chain_test.cpp
     dsp/tests/fft_test.cpp

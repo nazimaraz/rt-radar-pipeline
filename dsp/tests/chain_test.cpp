@@ -2,8 +2,10 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <vector>
 
+#include "dsp/adc.hpp"
 #include "dsp/cfar.hpp"
 #include "dsp/fft.hpp"
 #include "dsp/spectrum.hpp"
@@ -45,10 +47,12 @@ bool hasDetectionNear(const std::vector<dsp::Detection>& detections,
 
 TEST(Chain, FindsBothSweepingTargetsInEveryBlock) {
   sim::SignalGenerator generator;
+  auto raw = std::vector<std::uint16_t>(dsp::kFftSize);
   auto samples = std::vector<float>(dsp::kFftSize);
 
   for (auto block = 0u; block < 100u; ++block) {
-    generator.fill(samples.data(), samples.size(), block);
+    generator.fill(raw.data(), raw.size(), block);
+    dsp::decodeSamples(raw.data(), samples.data(), samples.size());
     const auto detections = process(samples);
 
     const auto targetA = 1500.0f + (10.0f * static_cast<float>(block));

@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <expected>
 
 #include "osal/osal.hpp"
 
@@ -13,8 +14,15 @@ static_assert(kBlockCount <= 255, "indices are uint8_t");
 
 struct SampleBlock {
   std::uint32_t sequence;
-  float samples[kBlockSamples];
+  std::uint16_t samples[kBlockSamples]; // raw ADC words, big-endian
 };
+
+enum class PoolError : std::uint8_t {
+  kNoFreeBlock, // acquire(): the consumer holds every block
+  kTimeout,     // take(): no full block arrived in time
+};
+
+[[nodiscard]] const char* describe(PoolError error);
 
 class BlockPool {
 public:
@@ -27,12 +35,13 @@ public:
 
   void create();
 
-  // Sampler side: never waits. False means the consumer holds every block.
-  [[nodiscard]] bool acquire(Index& index);
+  // Sampler side: never waits.
+  [[nodiscard]] std::expected<Index, PoolError> acquire();
   void publish(Index index);
 
   // Consumer side.
-  [[nodiscard]] bool take(Index& index, osal::Milliseconds timeout);
+  [[nodiscard]] std::expected<Index, PoolError>
+  take(osal::Milliseconds timeout);
   void release(Index index);
 
   [[nodiscard]] SampleBlock& block(Index index);

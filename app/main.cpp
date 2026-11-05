@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <utility>
 
 #include "bsp/bsp.hpp"
 #include "logger.hpp"
@@ -9,12 +10,12 @@ namespace {
 
 // Rate-monotonic order: the shorter a task's period, the higher its priority.
 // Pipeline tasks get their priorities here as they are added.
-enum Priority : UBaseType_t {
-  kLoggerPriority = 1, // lowest of ours: logging must never delay real work
-  kHeartbeatPriority = 2,
-  kReporterPriority = 3,
-  kProcessingPriority = 4,
-  kSamplerPriority = 5, // 16 ms period, tied with processing: the first stage
+enum class Priority : UBaseType_t {
+  kLogger = 1, // lowest of ours: logging must never delay real work
+  kHeartbeat = 2,
+  kReporter = 3,
+  kProcessing = 4,
+  kSampler = 5, // 16 ms period, tied with processing: the first stage
 };
 
 constexpr auto kHeartbeatPeriod{osal::Milliseconds{1'000}};
@@ -46,13 +47,16 @@ void heartbeat(void*) {
 
 int main() {
   bsp::init();
-  logger::start(kLoggerPriority);
+  logger::start(std::to_underlying(Priority::kLogger));
   logger::post("rt-radar-pipeline ", PROJECT_VERSION, " | FreeRTOS ",
                tskKERNEL_VERSION_NUMBER, " | Cortex-M4F @ ",
                configCPU_CLOCK_HZ / 1000000u, " MHz\n");
 
-  pipeline::start(kSamplerPriority, kProcessingPriority, kReporterPriority);
-  heartbeatTask.start("heartbeat", kHeartbeatPriority, heartbeat);
+  pipeline::start(std::to_underlying(Priority::kSampler),
+                  std::to_underlying(Priority::kProcessing),
+                  std::to_underlying(Priority::kReporter));
+  heartbeatTask.start("heartbeat", std::to_underlying(Priority::kHeartbeat),
+                      heartbeat);
 
   vTaskStartScheduler(); // does not return while the system runs
   return 0;

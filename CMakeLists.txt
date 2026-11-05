@@ -15,6 +15,7 @@ target_compile_options(project_warnings INTERFACE
 
 # --- DSP: plain C++ with no OS, built for the target and for the host ---------
 add_library(dsp STATIC
+    dsp/dsp/adc.cpp
     dsp/dsp/cfar.cpp
     dsp/dsp/fft.cpp
     dsp/dsp/spectrum.cpp
