@@ -1,112 +1,80 @@
 # rt-radar-pipeline
 
 A hard real-time radar signal-processing pipeline on FreeRTOS, running bare metal on an
-emulated ARM Cortex-M4F (QEMU, MPS2-AN386). Built to practise embedded real-time
-software the way safety-critical projects do it: static memory, explicit priorities,
-measured deadlines, an OS abstraction layer.
+ARM Cortex-M4F (QEMU, MPS2-AN386). Written in C++17 under the constraints of
+safety-critical embedded software: no heap, static allocation, rate-monotonic
+priorities, measured deadlines and an OS abstraction layer.
 
 ```
 rt-radar-pipeline 0.1.0 | FreeRTOS V11.3.3 | Cortex-M4F @ 25 MHz
-[1000 ms] heartbeat #1 | stack headroom 211 words
-[2000 ms] heartbeat #2 | stack headroom 206 words
+[17 ms] block #0 dsp 0/0 ms | free 3 full 0 | lost 0 ovr 0 ddrop 0
+[18 ms] #0 bin 24 (1500 Hz) power 4075.825 thr 27.495
+[18 ms] #0 bin 80 (5000 Hz) power 991.403 thr 33.315
+[1000 ms] heartbeat #1 | stack headroom 211 words | log dropped 0
 ```
 
-## Status
+## How it works
 
-- [x] Bare-metal bring-up: reset handler, vector table, linker script, UART console
-- [x] FreeRTOS 11.3.3, static allocation only, behind a thin OSAL
-- [x] Periodic task with deadline-overrun detection and stack headroom report
-- [x] Boot smoke test on QEMU (`ctest`)
-- [x] Logger task fed by a queue (single UART owner, drops instead of blocking)
-- [x] Signal generator (noise + two sweeping tones) with a zero-copy buffer pool
-- [x] FFT + CA-CFAR detection, unit tested on the host (`cmake --preset host`)
-
-## Architecture
+Every 16 ms the sampler fills a 256-sample block (16 kHz, simulated noise and two
+sweeping tones). The processing task applies a Hann window, a radix-2 FFT and CA-CFAR
+detection (Pfa = 10⁻⁶), and the reporter prints the targets found. Lost blocks,
+deadline overruns, dropped results and buffer leaks are counted, and the QEMU smoke
+test fails if any of them is non-zero.
 
 ```
- ┌─────────┐  block ids   ┌──────────────┐  detections  ┌──────────┐  log   ┌────────┐
- │ Sampler │ ───────────▶ │ DSP          │ ───────────▶ │ Reporter │ ─────▶ │ Logger │
- │ highest │   (queue)    │ FFT + CFAR   │   (queue)    │          │(queue) │ lowest │
- └─────────┘              └──────────────┘              └──────────┘        └────────┘
-      ▲                          │
-      └──── free buffer ids ─────┘   static pool of sample buffers, no copies
+ ┌──────────┐  block ids  ┌───────────────────┐  detections  ┌──────────┐  text   ┌────────┐
+ │ Sampler  │ ──────────▶ │ Processing        │ ───────────▶ │ Reporter │ ──────▶ │ Logger │
+ │ 16 ms    │   (queue)   │ Hann → FFT → CFAR │   (queue)    │          │ (queue) │ UART   │
+ └──────────┘             └───────────────────┘              └──────────┘         └────────┘
+      ▲                             │
+      └─────── free block ids ──────┘   4 static blocks, passed by index, never copied
 ```
 
-Priorities follow rate-monotonic order: the shorter the period, the higher the priority.
+## Design
 
-## Design rules
-
-- **No heap.** `configSUPPORT_DYNAMIC_ALLOCATION` is 0, so every task, queue and mutex
-  owns its storage. The linker wraps `malloc`, `calloc`, `realloc` and `free`, so any heap
-  use (including `new` or `std::vector`) fails the link instead of failing in the field.
-- **No hidden runtime.** `-fno-exceptions -fno-rtti -fno-threadsafe-statics`, C++17.
-  `-nostartfiles` and no syscall stubs: the only startup code is `Reset_Handler`, and
-  anything that needs an OS service fails the link.
-- **OS abstraction.** Application code includes only `osal/osal.hpp`. Porting to VxWorks
-  or an ARINC 653 partition OS means a new `osal/<backend>/`, not a new pipeline.
-- **Single-precision FPU.** `-Wdouble-promotion` flags accidental double-precision math,
-  which the M4F would run in software.
-
-## Layout
-
-```
-app/                  application tasks (main.cpp, logger, sampler, signal processing)
-dsp/dsp/              FFT, Hann window, power spectrum, CA-CFAR: plain C++, no OS
-dsp/tests/            GoogleTest unit tests, built for the host
-bsp/include/bsp/      board API: init, shutdown, console, format
-bsp/mps2_an386/       startup.c, linker.ld, UART driver, FreeRTOSConfig.h
-osal/freertos/osal/   OSAL backend: one header per class, a .cpp unless it is a template
-cmake/                arm-none-eabi toolchain file
-external/             FreeRTOS-Kernel (git submodule, V11.3.3)
-```
-
-## Code style
-
-The style follows `app/logger.*`: `auto x{T{}}` brace initialisation, `const` on
-every parameter and local that is not reassigned (in definitions, not in
-declarations), `[[nodiscard]]` on results that must be checked, trailing
-underscore on private members, `kName` constants.
-
-```bash
-clang-format -i $(git ls-files '*.cpp' '*.hpp' '*.c')   # .clang-format
-tools/clang-tidy.sh                                       # .clang-tidy, needs a configured build
-```
-
-`bsp/mps2_an386/config/` keeps FreeRTOS's own layout and is not reformatted.
+- **No heap.** `configSUPPORT_DYNAMIC_ALLOCATION` is 0 and the linker wraps `malloc`
+  and `free`, so any heap use, including `new` or `std::vector`, fails the link.
+- **No hidden runtime.** `-fno-exceptions -fno-rtti -fno-threadsafe-statics`,
+  `-nostartfiles` and no syscall stubs. The only startup code is a hand-written
+  `Reset_Handler`.
+- **Rate-monotonic priorities.** The shorter the period, the higher the priority. The
+  logger runs lowest, owns the UART and drops messages instead of blocking real work.
+- **OS abstraction layer.** Application code includes only `osal/osal.hpp`, so porting
+  to VxWorks or an ARINC 653 partition OS means a new backend, not a new pipeline.
+- **Single-precision FPU.** `-Wdouble-promotion` catches double math the M4F would run
+  in software.
+- **Tested.** 16 GoogleTest cases cover the DSP on the host, and `ctest` boots the
+  firmware in QEMU. The firmware takes about 27 KB of flash and 23 KB of RAM.
 
 ## Build and run
 
 Requirements: CMake 3.25+, Ninja, Arm GNU Toolchain (`arm-none-eabi`), QEMU with the
-`mps2-an386` machine.
+`mps2-an386` machine, and a host C++ compiler for the unit tests.
 
 ```bash
-git clone --recursive <repo-url>
-cmake --preset qemu
-cmake --build --preset qemu
+git clone --recursive https://github.com/nazimaraz/rt-radar-pipeline.git
+cd rt-radar-pipeline
+
+cmake --preset qemu && cmake --build --preset qemu
 cmake --build --preset qemu --target run   # quit with Ctrl-A, then X
 ctest --preset qemu                        # boot smoke test
 
-cmake --preset host                        # native build of the DSP unit tests
-cmake --build --preset host
-ctest --preset host
+cmake --preset host && cmake --build --preset host
+ctest --preset host                        # DSP unit tests
 ```
 
-In CLion, pick the **QEMU** run configuration (stored in `.run/`) and press Run. It
-builds `firmware` and starts QEMU in the Run console. The `run` CMake target is for
-the terminal only: in CLion's build window QEMU's output does not show and the build
-never finishes.
+To debug, start `cmake --build --preset qemu --target debug-server` and attach with
+`arm-none-eabi-gdb build/qemu/firmware.elf -ex "target remote :1234"`.
 
-The toolchain is looked up in `PATH`, `$ARM_GNU_TOOLCHAIN`,
-`~/Toolchains/arm-gnu-toolchain-*` and `/Applications/ArmGNUToolchain/*`.
+## Layout
 
-## Debugging
-
-```bash
-cmake --build --preset qemu --target debug-server   # halts at reset, GDB port 1234
-arm-none-eabi-gdb build/qemu/firmware.elf -ex "target remote :1234"
+```
+app/     sampler, processing, reporter, logger and heartbeat tasks
+dsp/     FFT, Hann window, power spectrum, CA-CFAR (no OS) and their unit tests
+osal/    OS abstraction layer with a FreeRTOS backend
+bsp/     startup code, linker script, UART driver and FreeRTOS config for MPS2-AN386
+cmake/   toolchain file and build scripts
 ```
 
-## A note on timing
-
-QEMU is not cycle-accurate: guest time follows host time. Timings measured here are
-good for comparing designs (overruns, priority inversion delays), not for WCET claims.
+QEMU is not cycle-accurate: guest time follows host time. The timings here are good for
+comparing designs, not for WCET claims.
