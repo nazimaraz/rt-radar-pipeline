@@ -63,6 +63,10 @@ cmake --preset qemu && cmake --build --preset qemu
 cmake --build --preset qemu --target run   # quit with Ctrl-A, then X
 ```
 
+Both targets go through `build/qemu/run-qemu`, a launcher that configuring writes
+with this machine's QEMU path; it also runs the last build directly. In CLion, the
+**QEMU** run configuration in `.run/` builds the firmware and starts it the same way.
+
 To debug, start `cmake --build --preset qemu --target debug-server` and attach with
 `arm-none-eabi-gdb build/qemu/firmware.elf -ex "target remote :1234"`.
 
