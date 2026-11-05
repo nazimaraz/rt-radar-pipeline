@@ -1,4 +1,4 @@
-#include "osal/critical_section.hpp"
+#include "osal/freertos/critical_section.hpp"
 
 #include "FreeRTOS.h"
 #include "task.h"

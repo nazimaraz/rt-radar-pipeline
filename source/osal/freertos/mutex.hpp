@@ -3,7 +3,7 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 
-#include "osal/time.hpp"
+#include "osal/freertos/time.hpp"
 
 namespace osal {
 

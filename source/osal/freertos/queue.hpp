@@ -7,7 +7,7 @@
 #include "FreeRTOS.h"
 #include "queue.h"
 
-#include "osal/time.hpp"
+#include "osal/freertos/time.hpp"
 
 namespace osal {
 

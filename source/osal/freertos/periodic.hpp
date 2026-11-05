@@ -1,7 +1,7 @@
 #pragma once
 
 #include "FreeRTOS.h"
-#include "osal/time.hpp"
+#include "osal/freertos/time.hpp"
 
 namespace osal {
 

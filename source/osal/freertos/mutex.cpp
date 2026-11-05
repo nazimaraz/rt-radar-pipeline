@@ -1,4 +1,4 @@
-#include "osal/mutex.hpp"
+#include "osal/freertos/mutex.hpp"
 
 using namespace osal;
 

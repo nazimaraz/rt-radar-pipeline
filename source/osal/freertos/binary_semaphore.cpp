@@ -1,4 +1,4 @@
-#include "osal/binary_semaphore.hpp"
+#include "osal/freertos/binary_semaphore.hpp"
 
 using namespace osal;
 

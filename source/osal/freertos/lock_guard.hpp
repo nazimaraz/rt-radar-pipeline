@@ -1,6 +1,6 @@
 #pragma once
 
-#include "osal/mutex.hpp"
+#include "osal/freertos/mutex.hpp"
 
 namespace osal {
 

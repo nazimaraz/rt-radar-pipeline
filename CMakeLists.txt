@@ -11,20 +11,6 @@ if(NOT CMAKE_CROSSCOMPILING)
     message(FATAL_ERROR "Only the firmware build exists: cmake --preset qemu")
 endif()
 
-# Warnings for our own code. -Wdouble-promotion matters on the M4F: its FPU is
-# single precision, so an accidental double is done in software.
-add_library(project_warnings INTERFACE)
-target_compile_options(project_warnings INTERFACE
-    -Wall -Wextra -Wshadow -Wdouble-promotion -Wformat=2)
-
-# --- DSP: plain C++ with no OS ------------------------------------------------
-add_library(dsp STATIC
-    dsp/dsp/adc.cpp
-    dsp/dsp/cfar.cpp
-    dsp/dsp/fft.cpp
-    dsp/dsp/spectrum.cpp
-    dsp/dsp/window.cpp)
-target_include_directories(dsp PUBLIC dsp)
-target_link_libraries(dsp PRIVATE project_warnings)
-
-include(cmake/firmware.cmake)
+add_subdirectory(dependencies) # FreeRTOS kernel
+add_subdirectory(source)       # our libraries and the firmware
+include(cmake/qemu.cmake)      # run and debug targets

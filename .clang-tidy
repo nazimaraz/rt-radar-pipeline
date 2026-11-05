@@ -1,5 +1,5 @@
 ---
-# Checks follow the style of app/logger.*: brace initialisation with `auto`,
+# Checks follow the style of source/app/logger.*: brace initialisation with `auto`,
 # `const` wherever a value is not reassigned, [[nodiscard]] on results that
 # must not be ignored, trailing underscore on members.
 #
@@ -53,7 +53,7 @@ Checks: >
 
 # Only our code, not FreeRTOS or the toolchain headers.
 # FreeRTOSConfig.h stays out: its macros must remain macros.
-HeaderFilterRegex: '(app|bsp/include|osal|dsp/dsp)/'
+HeaderFilterRegex: 'source/(app/|dsp/|osal/|bsp/[^/]*$)'
 WarningsAsErrors: ''
 
 CheckOptions:

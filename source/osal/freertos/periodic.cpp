@@ -1,4 +1,4 @@
-#include "osal/periodic.hpp"
+#include "osal/freertos/periodic.hpp"
 
 using namespace osal;
 

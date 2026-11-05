@@ -69,11 +69,13 @@ To debug, start `cmake --build --preset qemu --target debug-server` and attach w
 ## Layout
 
 ```
-app/     sampler, processing, reporter, logger and heartbeat tasks
-dsp/     ADC format, FFT, Hann window, power spectrum and CA-CFAR: plain C++, no OS
-osal/    OS abstraction layer with a FreeRTOS backend
-bsp/     startup code, linker script, UART driver and FreeRTOS config for MPS2-AN386
-cmake/   toolchain file and build scripts
+source/app/     sampler, processing, reporter, logger and heartbeat tasks
+source/dsp/     ADC format, FFT, Hann window, power spectrum and CA-CFAR: no OS
+source/osal/    OS abstraction layer: osal.hpp picks the backend, freertos/ is one
+source/bsp/     board API; mps2_an386/ has the startup code, linker script, UART
+                driver and FreeRTOS config for this board
+dependencies/   third-party libraries: FreeRTOS-Kernel V11.3.3 (git submodule)
+cmake/          toolchain file and the QEMU run and debug targets
 ```
 
 QEMU is not cycle-accurate: guest time follows host time. The timings here are good for

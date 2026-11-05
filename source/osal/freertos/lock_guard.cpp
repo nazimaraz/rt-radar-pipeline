@@ -1,4 +1,4 @@
-#include "osal/lock_guard.hpp"
+#include "osal/freertos/lock_guard.hpp"
 
 using namespace osal;
 
