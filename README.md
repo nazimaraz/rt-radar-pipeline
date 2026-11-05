@@ -20,21 +20,14 @@ rt-radar-pipeline 0.1.0 | FreeRTOS V11.3.3 | Cortex-M4F @ 25 MHz
 - [x] Logger task fed by a queue (single UART owner, drops instead of blocking)
 - [x] Signal generator (noise + two sweeping tones) with a zero-copy buffer pool
 - [x] FFT + CA-CFAR detection, unit tested on the host (`cmake --preset host`)
-- [ ] Alpha-beta tracker
-- [ ] Timing and health monitoring (execution time, CPU load)
-- [ ] Priority inversion demo: binary semaphore vs. mutex with priority inheritance
-- [ ] Timer-interrupt-driven sampling
 
-## Planned architecture
+## Architecture
 
 ```
- TIMER0 IRQ
-     │
-     ▼
- ┌─────────┐  block ids   ┌──────────────┐  detections  ┌─────────┐  tracks  ┌────────┐
- │ Sampler │ ───────────▶ │ DSP          │ ───────────▶ │ Tracker │ ───────▶ │ Logger │
- │ highest │   (queue)    │ FFT + CFAR   │   (queue)    │         │ (queue)  │ lowest │
- └─────────┘              └──────────────┘              └─────────┘          └────────┘
+ ┌─────────┐  block ids   ┌──────────────┐  detections  ┌──────────┐  log   ┌────────┐
+ │ Sampler │ ───────────▶ │ DSP          │ ───────────▶ │ Reporter │ ─────▶ │ Logger │
+ │ highest │   (queue)    │ FFT + CFAR   │   (queue)    │          │(queue) │ lowest │
+ └─────────┘              └──────────────┘              └──────────┘        └────────┘
       ▲                          │
       └──── free buffer ids ─────┘   static pool of sample buffers, no copies
 ```
